@@ -1,5 +1,5 @@
 {
-  "name": "logistics",
+  "name": "logistics-platform",
   "private": true,
   "scripts": {
     "build": "turbo run build",
@@ -19,7 +19,6 @@
   "packageManager": "npm@10.9.4",
   "workspaces": [
     "apps/*",
-    "packages/*",
-    "api"
+    "packages/*"
   ]
 }
