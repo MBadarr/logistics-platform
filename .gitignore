@@ -26,12 +26,14 @@ coverage
 out/
 build
 dist
+apps/**/src/generated/prisma
 
 
 # Debug
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+web-dev.log
 
 # Misc
 .DS_Store

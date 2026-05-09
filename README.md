@@ -1,159 +1,88 @@
-# Turborepo starter
+# Logistics Platform
 
-This Turborepo starter is maintained by the Turborepo core team.
+This repository is a Turborepo workspace for a logistics platform. It contains two Next.js frontends, shared UI/config packages, and a NestJS microservice backend foundation.
 
-## Using this example
+## Apps
 
-Run the following command:
+- `apps/web`: customer/admin web app on port `3000`
+- `apps/docs`: documentation app on port `3001`
+- `apps/api/api-gateway`: public NestJS REST API gateway with Swagger and JWT auth on port `3002`
+- `apps/api/auth-service`: Kafka-backed auth microservice with PostgreSQL and Prisma
+- `apps/api/shipment-service`: Kafka-backed shipment microservice with PostgreSQL and Prisma
+- `apps/api/notification-service`: Kafka event consumer with Redis-backed BullMQ jobs
 
-```sh
-npx create-turbo@latest
-```
+## Packages
 
-## What's inside?
+- `packages/api-types`: shared backend request, command, and event payload types
+- `packages/ui`: shared React component library
+- `packages/eslint-config`: shared ESLint configs
+- `packages/typescript-config`: shared TypeScript configs
 
-This Turborepo includes the following packages/apps:
+## Infrastructure
 
-### Apps and Packages
+The local infrastructure stack is defined in `docker-compose.yml`:
 
-- `docs`: a [Next.js](https://nextjs.org/) app
-- `web`: another [Next.js](https://nextjs.org/) app
-- `@repo/ui`: a stub React component library shared by both `web` and `docs` applications
-- `@repo/eslint-config`: `eslint` configurations (includes `eslint-config-next` and `eslint-config-prettier`)
-- `@repo/typescript-config`: `tsconfig.json`s used throughout the monorepo
+- PostgreSQL on `5432`
+- Kafka on `9092`
+- Redis on `6379`
 
-Each package/app is 100% [TypeScript](https://www.typescriptlang.org/).
+The PostgreSQL container initializes separate databases for `auth-service` and `shipment-service`.
 
-### Utilities
+## Setup
 
-This Turborepo has some additional tools already setup for you:
-
-- [TypeScript](https://www.typescriptlang.org/) for static type checking
-- [ESLint](https://eslint.org/) for code linting
-- [Prettier](https://prettier.io) for code formatting
-
-### Build
-
-To build all apps and packages, run the following command:
-
-With [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation) installed (recommended):
+Copy `.env.example` to `.env`, then install dependencies:
 
 ```sh
-cd my-turborepo
-turbo build
+npm install
 ```
 
-Without global `turbo`, use your package manager:
+Start the local infrastructure:
 
 ```sh
-cd my-turborepo
-npx turbo build
-npm dlx turbo build
-npm exec turbo build
+npm run dev:infra
 ```
 
-You can build a specific package by using a [filter](https://turborepo.dev/docs/crafting-your-repository/running-tasks#using-filters):
-
-With [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation) installed:
+Generate Prisma clients:
 
 ```sh
-turbo build --filter=docs
+npm run prisma:generate
 ```
 
-Without global `turbo`:
+Run database migrations for the Prisma services:
 
 ```sh
-npx turbo build --filter=docs
-npm exec turbo build --filter=docs
-npm exec turbo build --filter=docs
+npm run prisma:migrate
 ```
 
-### Develop
-
-To develop all apps and packages, run the following command:
-
-With [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation) installed (recommended):
+Start all apps and services:
 
 ```sh
-cd my-turborepo
-turbo dev
+npm run dev
 ```
 
-Without global `turbo`, use your package manager:
+Swagger is available from the API gateway at:
+
+```txt
+http://localhost:3002/api/docs
+```
+
+## Backend Flow
+
+The first microservice slice supports auth and shipment workflows:
+
+1. Clients call `api-gateway` over REST.
+2. The gateway forwards auth and shipment commands to Kafka-backed NestJS services.
+3. `auth-service` owns users and signs JWT access tokens.
+4. `shipment-service` owns shipment records and timeline events.
+5. `notification-service` listens for shipment events and processes notification jobs through BullMQ.
+
+Shared backend contracts live in `packages/api-types` and are imported by the gateway and services so request and event shapes stay consistent across the monorepo.
+
+## Useful Commands
 
 ```sh
-cd my-turborepo
-npx turbo dev
-npm exec turbo dev
-npm exec turbo dev
+npm run build
+npm run lint
+npm run check-types
+npm run prisma:generate
 ```
-
-You can develop a specific package by using a [filter](https://turborepo.dev/docs/crafting-your-repository/running-tasks#using-filters):
-
-With [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation) installed:
-
-```sh
-turbo dev --filter=web
-```
-
-Without global `turbo`:
-
-```sh
-npx turbo dev --filter=web
-npm exec turbo dev --filter=web
-npm exec turbo dev --filter=web
-```
-
-### Remote Caching
-
-> [!TIP]
-> Vercel Remote Cache is free for all plans. Get started today at [vercel.com](https://vercel.com/signup?utm_source=remote-cache-sdk&utm_campaign=free_remote_cache).
-
-Turborepo can use a technique known as [Remote Caching](https://turborepo.dev/docs/core-concepts/remote-caching) to share cache artifacts across machines, enabling you to share build caches with your team and CI/CD pipelines.
-
-By default, Turborepo will cache locally. To enable Remote Caching you will need an account with Vercel. If you don't have an account you can [create one](https://vercel.com/signup?utm_source=turborepo-examples), then enter the following commands:
-
-With [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation) installed (recommended):
-
-```sh
-cd my-turborepo
-turbo login
-```
-
-Without global `turbo`, use your package manager:
-
-```sh
-cd my-turborepo
-npx turbo login
-npm exec turbo login
-npm exec turbo login
-```
-
-This will authenticate the Turborepo CLI with your [Vercel account](https://vercel.com/docs/concepts/personal-accounts/overview).
-
-Next, you can link your Turborepo to your Remote Cache by running the following command from the root of your Turborepo:
-
-With [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation) installed:
-
-```sh
-turbo link
-```
-
-Without global `turbo`:
-
-```sh
-npx turbo link
-npm exec turbo link
-npm exec turbo link
-```
-
-## Useful Links
-
-Learn more about the power of Turborepo:
-
-- [Tasks](https://turborepo.dev/docs/crafting-your-repository/running-tasks)
-- [Caching](https://turborepo.dev/docs/crafting-your-repository/caching)
-- [Remote Caching](https://turborepo.dev/docs/core-concepts/remote-caching)
-- [Filtering](https://turborepo.dev/docs/crafting-your-repository/running-tasks#using-filters)
-- [Configuration Options](https://turborepo.dev/docs/reference/configuration)
-- [CLI Usage](https://turborepo.dev/docs/reference/command-line-reference)

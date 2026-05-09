@@ -4,6 +4,9 @@
   "scripts": {
     "build": "turbo run build",
     "dev": "turbo run dev",
+    "dev:infra": "docker compose up -d postgres kafka redis",
+    "prisma:generate": "turbo run prisma:generate",
+    "prisma:migrate": "turbo run prisma:migrate",
     "lint": "turbo run lint",
     "format": "prettier --write \"**/*.{ts,tsx,md}\"",
     "check-types": "turbo run check-types"
@@ -19,6 +22,7 @@
   "packageManager": "npm@10.9.4",
   "workspaces": [
     "apps/*",
+    "apps/api/*",
     "packages/*"
   ]
 }
