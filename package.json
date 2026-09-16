@@ -9,16 +9,13 @@
     "check-types": "turbo run check-types"
   },
   "devDependencies": {
-    "prettier": "^3.7.4",
-    "turbo": "^2.9.7",
-    "typescript": "5.9.2"
+    "@turbo/gen": "^2.10.13",
+    "prettier": "3.9.6",
+    "turbo": "^2.10.13",
+    "typescript": "7.0.2"
   },
+  "packageManager": "pnpm@11.25.0",
   "engines": {
-    "node": ">=18"
-  },
-  "packageManager": "npm@10.9.4",
-  "workspaces": [
-    "apps/*",
-    "packages/*"
-  ]
+    "node": ">=24"
+  }
 }
