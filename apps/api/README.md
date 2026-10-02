@@ -23,6 +23,20 @@
 
 ## Description
 
+API documentation:
+
+- Scalar: http://localhost:3002/reference
+- Swagger UI: http://localhost:3002/docs
+- OpenAPI JSON: http://localhost:3002/openapi.json
+
+Run `pnpm --filter api dev` from the repository root. Both documentation interfaces use the same generated document, configured in `src/config/api-docs.ts`. Authentication request/response models are in `src/auth/auth.dto.ts`; runtime validation remains in `auth.validation.ts`.
+
+To test authenticated requests, sign up or log in through the docs first. The browser stores the HttpOnly session cookie automatically; you do not need to paste a bearer token. Requests from the docs stay on the API server (Scalar's external proxy is disabled). Browsers do not let Swagger manually set a Cookie header.
+
+Local docs requests allow `http://localhost:3002` by default. For a different API host or production deployment, set `API_ORIGIN` in `apps/api/.env` to that API's public origin. The web application's trusted origin continues to come from `APP_URL`.
+
+Verify the documentation routes, schemas, and origin restrictions with `pnpm --filter api test:docs:integration`. This check does not require PostgreSQL or Resend.
+
 [Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
 
 ## Project setup

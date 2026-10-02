@@ -1,10 +1,11 @@
-import "dotenv/config";
 import { drizzle } from "drizzle-orm/node-postgres";
 import { Pool } from "pg";
 
-const pool = new Pool({
-  connectionString: process.env.DATABASE_URL!,
-});
+export function createDatabase(connectionString: string) {
+  if (!connectionString) throw new Error("DATABASE_URL is required");
+  const pool = new Pool({ connectionString });
+  return { db: drizzle({ client: pool }), pool };
+}
 
-export const db = drizzle({ client: pool });
-export { pool };
+export type Database = ReturnType<typeof createDatabase>["db"];
+export * from "./db/schema.js";
