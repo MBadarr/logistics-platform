@@ -2,11 +2,20 @@
   "name": "database",
   "version": "0.0.0",
   "private": true,
+  "type": "module",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
   "scripts": {
-    "dev": "echo 'Add dev script here'",
-    "build": "echo 'Add build script here'",
-    "test": "echo 'Add test script here'",
-    "lint": "echo 'Add lint script here'"
+    "dev": "tsc --watch",
+    "build": "tsc",
+    "check-types": "tsc --noEmit",
+    "db:generate": "drizzle-kit generate",
+    "db:migrate": "drizzle-kit migrate",
+    "db:studio": "drizzle-kit studio"
   },
   "dependencies": {
     "dotenv": "^18.0.5",
@@ -14,8 +23,10 @@
     "pg": "^8.23.1"
   },
   "devDependencies": {
+    "@types/node": "^26.6.3",
     "@types/pg": "^8.23.1",
     "drizzle-kit": "1.0.0-rc.4",
-    "tsx": "^4.23.15"
+    "tsx": "^4.23.15",
+    "typescript": "^7.0.2"
   }
 }
