@@ -1,6 +1,11 @@
 "use client";
 
 import Link from "next/link";
+import { Button, buttonStyles } from "@repo/ui/button";
+import { Input } from "@repo/ui/input";
+import { Field } from "@repo/ui/field";
+import { PasswordInput } from "@repo/ui/password-input";
+import { Alert } from "@repo/ui/alert";
 import { useRouter } from "next/navigation";
 import { useState, type FormEvent } from "react";
 
@@ -38,7 +43,7 @@ export function AuthForm({ mode, token }: { mode: Mode; token?: string }) {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   const [message, setMessage] = useState("");
-  const [showPassword, setShowPassword] = useState(false);
+
   const copy = content[mode];
   const invalidToken =
     mode === "reset-password" && !/^[a-f0-9]{64}$/.test(token ?? "");
@@ -90,36 +95,46 @@ export function AuthForm({ mode, token }: { mode: Mode; token?: string }) {
   }
 
   return (
-    <section className="auth-card">
-      <p className="auth-eyebrow">{copy.eyebrow}</p>
+    <section className="my-auto w-full max-w-100 py-14 auth:py-9 [&>h1]:text-3xl auth:[&>h1]:text-4xl [&>h1]:leading-tight [&>h1]:font-medium [&>h1]:tracking-tight">
+      <p className="mb-4 text-xs font-bold tracking-widest text-eyebrow">
+        {copy.eyebrow}
+      </p>
       <h1>{copy.title}</h1>
-      <p className="auth-description">{copy.subtitle}</p>
+      <p className="mt-4 mb-8 text-sm leading-relaxed text-muted">
+        {copy.subtitle}
+      </p>
       {message ? (
-        <div className="auth-complete">
-          <span className="auth-complete-icon" aria-hidden="true">
+        <div className="flex flex-col gap-6 text-sm leading-relaxed">
+          <span
+            className="grid size-12 place-items-center rounded-full bg-success text-2xl text-link"
+            aria-hidden="true"
+          >
             ✓
           </span>
           <p role="status">{message}</p>
-          <Link className="auth-submit" href="/login">
+          <Link className={buttonStyles({ fullWidth: true })} href="/login">
             Back to sign in →
           </Link>
         </div>
       ) : invalidToken ? (
-        <div className="auth-complete">
+        <div className="flex flex-col gap-6 text-sm leading-relaxed">
           <p role="alert">
             This reset link is missing or invalid. Request a new link to
             continue.
           </p>
-          <Link className="auth-submit" href="/forgot-password">
+          <Link
+            className={buttonStyles({ fullWidth: true })}
+            href="/forgot-password"
+          >
             Request a new link
           </Link>
         </div>
       ) : (
-        <form onSubmit={submit} className="auth-form">
+        <form onSubmit={submit} className="flex flex-col gap-5">
           {mode === "signup" && (
-            <label>
+            <Field>
               Full name
-              <input
+              <Input
                 name="name"
                 autoComplete="name"
                 placeholder="Alex Morgan"
@@ -127,12 +142,12 @@ export function AuthForm({ mode, token }: { mode: Mode; token?: string }) {
                 maxLength={100}
                 required
               />
-            </label>
+            </Field>
           )}
           {mode !== "reset-password" && (
-            <label>
+            <Field>
               Email address
-              <input
+              <Input
                 name="email"
                 type="email"
                 autoComplete="email"
@@ -140,72 +155,59 @@ export function AuthForm({ mode, token }: { mode: Mode; token?: string }) {
                 maxLength={254}
                 required
               />
-            </label>
+            </Field>
           )}
           {mode !== "forgot-password" && (
-            <label>
-              <span className="auth-label-row">
+            <Field>
+              <span className="flex justify-between gap-3 [&>a]:font-normal [&>a]:text-link-muted">
                 Password{" "}
                 {mode === "login" && (
                   <Link href="/forgot-password">Forgot password?</Link>
                 )}
               </span>
-              <span className="auth-password-field">
-                <input
-                  name="password"
-                  type={showPassword ? "text" : "password"}
-                  autoComplete={
-                    mode === "login" ? "current-password" : "new-password"
-                  }
-                  placeholder={
-                    mode === "login"
-                      ? "Enter your password"
-                      : "At least 12 characters"
-                  }
-                  minLength={mode === "login" ? 1 : 12}
-                  maxLength={128}
-                  required
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowPassword(!showPassword)}
-                  aria-label={showPassword ? "Hide password" : "Show password"}
-                >
-                  {showPassword ? "Hide" : "Show"}
-                </button>
-              </span>
-            </label>
+              <PasswordInput
+                name="password"
+
+                autoComplete={
+                  mode === "login" ? "current-password" : "new-password"
+                }
+                placeholder={
+                  mode === "login"
+                    ? "Enter your password"
+                    : "At least 12 characters"
+                }
+                minLength={mode === "login" ? 1 : 12}
+                maxLength={128}
+                required
+              />
+            </Field>
           )}
           {mode === "reset-password" && (
-            <label>
+            <Field>
               Confirm password
-              <input
+              <PasswordInput
                 name="confirmPassword"
-                type={showPassword ? "text" : "password"}
+
                 autoComplete="new-password"
                 minLength={12}
                 maxLength={128}
                 required
               />
-            </label>
+            </Field>
           )}
-          {error && (
-            <p className="auth-error" role="alert">
-              {error}
-            </p>
-          )}
-          <button className="auth-submit" type="submit" disabled={busy}>
+          {error && <Alert>{error}</Alert>}
+          <Button fullWidth type="submit" loading={busy}>
             {busy ? "Please wait…" : copy.action}
             <span aria-hidden="true">→</span>
-          </button>
+          </Button>
           {mode === "signup" && (
-            <p className="auth-hint">
+            <p className="text-xs leading-relaxed text-muted">
               Use a unique password with at least 12 characters.
             </p>
           )}
         </form>
       )}
-      <p className="auth-switch">
+      <p className="mt-7 text-center text-sm text-muted [&_a]:font-semibold [&_a]:text-link">
         {mode === "login" ? (
           <>
             New here? <Link href="/signup">Create an account</Link>

@@ -1,0 +1,65 @@
+@import "tailwindcss";
+
+@source "../";
+
+/* Tailwind v4 theme configuration: one source for all workspace apps. */
+@theme {
+  --font-sans: "Geist", Arial, Helvetica, sans-serif;
+  --font-mono: "Geist Mono", monospace;
+  --color-canvas: #f8f7f3;
+  --color-ink: #172526;
+  --color-brand: #183d38;
+  --color-brand-hover: #28564e;
+  --color-brand-deep: #142d2e;
+  --color-accent: #e9a36d;
+  --color-focus: #d4854c;
+  --color-muted: #6c7874;
+  --color-subtle: #8d9790;
+  --color-eyebrow: #637d78;
+  --color-link: #244d40;
+  --color-link-muted: #476b60;
+  --color-input-border: #dadfd9;
+  --color-input-focus: #47736b;
+  --color-placeholder: #97a09b;
+  --color-toggle: #627a71;
+  --color-divider: #dde3db;
+  --color-outline: #cad4ca;
+  --color-card-border: #e0e5dc;
+  --color-success: #e2eee3;
+  --color-danger: #a92f2f;
+  --color-danger-surface: #fff0ed;
+  --color-story-pill: #c3d2cc;
+  --color-story-body: #b2c5c2;
+  --color-story-detail: #91aaa7;
+  --color-story-footer: #8ca6a3;
+  --breakpoint-auth: 50.0625rem;
+  --breakpoint-account: 37.5625rem;
+  --shadow-input: 0 0 0 0.1875rem #47736b12;
+  --shadow-orbit: 0 0 0 5rem #ffffff03, 0 0 0 10rem #ffffff03;
+}
+
+@font-face {
+  font-family: "Geist";
+  src: url("../fonts/GeistVF.woff") format("woff");
+  font-weight: 100 900;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Geist Mono";
+  src: url("../fonts/GeistMonoVF.woff") format("woff");
+  font-weight: 100 900;
+  font-style: normal;
+  font-display: swap;
+}
+
+@layer base {
+  body {
+    @apply bg-canvas font-sans text-ink antialiased;
+  }
+  a:focus-visible,
+  button:focus-visible {
+    @apply outline-2 outline-offset-4 outline-focus;
+  }
+}

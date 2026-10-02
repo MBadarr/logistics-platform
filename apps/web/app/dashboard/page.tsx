@@ -1,7 +1,6 @@
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { LogoutButton } from "../../components/auth/logout-button";
-import "./dashboard.css";
 
 export default async function DashboardPage() {
   const session = (await cookies()).get("logistics_session");
@@ -18,7 +17,7 @@ export default async function DashboardPage() {
     );
   } catch {
     return (
-      <main className="dashboard-shell">
+      <main className="min-h-svh bg-canvas px-[max(1.5rem,calc((100vw-68.75rem)/2))] py-8 text-ink [&>header]:flex [&>header]:items-center [&>header]:justify-between [&>header]:border-b [&>header]:border-divider [&>header]:pb-7">
         <h1>Your workspace is temporarily unavailable.</h1>
         <p>Please try again shortly.</p>
       </main>
@@ -27,7 +26,7 @@ export default async function DashboardPage() {
   if (response.status === 401) redirect("/login");
   if (!response.ok)
     return (
-      <main className="dashboard-shell">
+      <main className="min-h-svh bg-canvas px-[max(1.5rem,calc((100vw-68.75rem)/2))] py-8 text-ink [&>header]:flex [&>header]:items-center [&>header]:justify-between [&>header]:border-b [&>header]:border-divider [&>header]:pb-7">
         <h1>We could not load your account.</h1>
         <p>Please try again shortly.</p>
       </main>
@@ -36,24 +35,28 @@ export default async function DashboardPage() {
     user: { name: string; email: string };
   };
   return (
-    <main className="dashboard-shell">
+    <main className="min-h-svh bg-canvas px-[max(1.5rem,calc((100vw-68.75rem)/2))] py-8 text-ink [&>header]:flex [&>header]:items-center [&>header]:justify-between [&>header]:border-b [&>header]:border-divider [&>header]:pb-7">
       <header>
-        <span className="dashboard-brand">↗ logistics.</span>
+        <span className="text-2xl font-bold tracking-tight">↗ logistics.</span>
         <LogoutButton />
       </header>
-      <section className="dashboard-welcome">
-        <p className="dashboard-eyebrow">YOUR WORKSPACE</p>
+      <section className="mx-auto mt-16 mb-24 max-w-180 account:mt-24 [&>h1]:mb-5 [&>h1]:text-3xl account:[&>h1]:text-5xl [&>h1]:font-medium [&>h1]:tracking-tight [&>p]:leading-loose [&>p]:text-muted">
+        <p className="mb-4.5 text-xs tracking-widest text-eyebrow!">
+          YOUR WORKSPACE
+        </p>
         <h1>Welcome aboard, {user.name.split(" ")[0]}.</h1>
         <p>You’re signed in and ready for your next move.</p>
-        <div className="dashboard-account">
+        <div className="my-8 flex flex-wrap items-center gap-4.5 rounded-2xl border border-card-border bg-white p-4.5 account:flex-nowrap account:p-6.5 [&>span:first-child]:grid [&>span:first-child]:size-11 [&>span:first-child]:shrink-0 [&>span:first-child]:place-items-center [&>span:first-child]:rounded-full [&>span:first-child]:bg-success [&>span:first-child]:text-link [&_p]:mt-2 [&_p]:text-sm [&_p]:text-muted [&_p]:wrap-anywhere">
           <span aria-hidden="true">✓</span>
           <div>
             <strong>{user.name}</strong>
             <p>{user.email}</p>
           </div>
-          <span className="dashboard-active">Signed in</span>
+          <span className="ml-auto rounded-full bg-success px-2.5 py-2 text-xs whitespace-nowrap text-link">
+            Signed in
+          </span>
         </div>
-        <p className="dashboard-note">
+        <p className="text-sm">
           Your account is ready. Shipment and fleet management will appear here
           as your workspace grows.
         </p>

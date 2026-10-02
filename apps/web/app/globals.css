@@ -1,1 +1,4 @@
-@import "tailwindcss";
+@import "@repo/ui/global.css";
+/* Explicit sources keep builds independent of the command's working directory. */
+@source "./";
+@source "../components";

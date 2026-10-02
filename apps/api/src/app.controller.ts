@@ -9,7 +9,7 @@ export class AppController {
 
   @Get()
   @ApiOperation({ summary: 'Get the API greeting' })
-  @ApiOkResponse({ schema: { type: 'string', example: 'Hello World!' } })
+  @ApiOkResponse({ schema: { type: 'string', example: 'Logistics Platform!' } })
   getHello(): string {
     return this.appService.getHello();
   }

@@ -1,6 +1,8 @@
 "use client";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { Button } from "@repo/ui/button";
+import { Alert } from "@repo/ui/alert";
 
 export function LogoutButton() {
   const router = useRouter();
@@ -26,10 +28,10 @@ export function LogoutButton() {
   }
   return (
     <div>
-      <button className="dashboard-logout" onClick={logout} disabled={busy}>
+      <Button variant="outline" onClick={logout} loading={busy}>
         {busy ? "Signing out…" : "Sign out ↗"}
-      </button>
-      {error && <p role="alert">{error}</p>}
+      </Button>
+      {error && <Alert>{error}</Alert>}
     </div>
   );
 }

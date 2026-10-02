@@ -5,19 +5,25 @@ import { AppService } from './app.service.js';
 import { AuthModule } from './auth/auth.module.js';
 
 export const { ObserveModule, ObserveInstrument } = createObserveModule();
+export const observeEnabled = Boolean(
+  process.env.OBSERVE_APP_KEY && process.env.OBSERVE_APP_SECRET,
+);
 
 @Module({
   imports: [
     AuthModule,
-    // Distributed tracing, auto-correlated logs, request/job metrics, error
-    // telemetry, alarms, and more — out of the box. Sign up at https://observe.nestjs.com
-    ObserveModule.forRoot({
-      appKey: 'YOUR_APP_KEY',
-      appSecret: 'YOUR_APP_SECRET',
-      serviceId: 'api',
-    }),
+    ...(observeEnabled
+      ? [
+          ObserveModule.forRoot({
+            appKey: process.env.OBSERVE_APP_KEY!,
+            appSecret: process.env.OBSERVE_APP_SECRET!,
+            serviceId: 'api',
+          }),
+        ]
+      : []),
   ],
   controllers: [AppController],
   providers: [AppService],
 })
 export class AppModule {}
+import './config/environment.js';

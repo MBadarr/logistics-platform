@@ -23,6 +23,10 @@
 
 ## Description
 
+Optional Nest Observe telemetry is enabled only when `OBSERVE_APP_KEY` and
+`OBSERVE_APP_SECRET` are configured. Empty values leave it unconfigured, avoiding
+worker errors from the starter's placeholder credentials.
+
 API documentation:
 
 - Scalar: http://localhost:3002/reference

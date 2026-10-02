@@ -3,6 +3,8 @@
   "version": "0.0.0",
   "private": true,
   "exports": {
+    "./global.css": "./src/styles/global.css",
+    "./postcss": "./postcss.config.mjs",
     "./*": "./src/*.tsx"
   },
   "scripts": {
@@ -20,6 +22,7 @@
     "typescript": "7.0.2"
   },
   "dependencies": {
+    "tailwindcss": "^4.3.3",
     "react": "19.2.8",
     "react-dom": "19.2.8"
   }
