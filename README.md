@@ -1,5 +1,22 @@
 # Turborepo starter
 
+## Next.js MCP diagnostics
+
+The repository root `.mcp.json` configures `next-devtools-mcp` using the official
+[Next.js MCP guide](https://nextjs.org/docs/app/guides/mcp). Codex also has the
+equivalent project-scoped configuration in `.codex/config.toml`, following the
+[Codex MCP documentation](https://developers.openai.com/codex/mcp/).
+
+Start development servers from this directory with `pnpm dev` (`web`: port 3000,
+`docs`: port 3001). Restart your coding agent to load the MCP connection. The MCP
+launcher downloads the latest package through `npx`; it needs Node.js, npm, and
+network access on first launch. No app dependency or Next.js config change is
+required. Codex loads project MCP configuration for trusted projects.
+
+The server can discover running Next.js dev instances to inspect errors, routes,
+page metadata, and logs. Runtime diagnostics require the relevant app's development
+server to be running; production builds do not provide this connection.
+
 This Turborepo starter is maintained by the Turborepo core team.
 
 ## Using this example
