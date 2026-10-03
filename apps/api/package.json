@@ -25,6 +25,8 @@
     "test:docs:integration": "pnpm build && node test/api-docs.integration.mjs"
   },
   "dependencies": {
+    "@aws-sdk/client-s3": "^3.1145.0",
+    "@aws-sdk/s3-request-presigner": "^3.1145.0",
     "@nestjs/common": "^12.0.1",
     "@nestjs/core": "^12.0.1",
     "@nestjs/observe": "^0.1.8",
@@ -34,8 +36,8 @@
     "database": "workspace:*",
     "dotenv": "^18.0.5",
     "drizzle-orm": "1.0.0-rc.4",
+    "jose": "^6.2.12",
     "reflect-metadata": "^0.2.2",
-    "resend": "^6.31.0",
     "rxjs": "^7.8.1",
     "swagger-ui-express": "^5.0.1"
   },

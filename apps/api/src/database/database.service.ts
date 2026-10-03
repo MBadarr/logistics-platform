@@ -4,7 +4,7 @@ import { requiredEnv } from '../config/environment.js';
 
 @Injectable()
 export class DatabaseService implements OnModuleDestroy {
-  private readonly connection = createDatabase(requiredEnv('DATABASE_URL'));
+  private readonly connection = createDatabase(process.env.DATABASE_URL_POOLED?.trim() || requiredEnv('DATABASE_URL'));
   readonly db = this.connection.db;
 
   async onModuleDestroy() {

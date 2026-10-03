@@ -1,16 +1,21 @@
-import { cookies } from "next/headers";
+import { auth } from "../../lib/auth/server";
 import { redirect } from "next/navigation";
 import { LogoutButton } from "../../components/auth/logout-button";
+import { Files } from "../../components/files";
+
+export const dynamic = "force-dynamic";
 
 export default async function DashboardPage() {
-  const session = (await cookies()).get("logistics_session");
-  if (!session) redirect("/login");
+  const { data: session } = await auth.getSession();
+  if (!session?.user) redirect("/login");
   let response: Response;
   try {
+    const { data, error } = await auth.token();
+    if (error || !data?.token) throw new Error("Unable to obtain a Neon token");
     response = await fetch(
       new URL("/auth/me", process.env.API_URL ?? "http://localhost:3002"),
       {
-        headers: { Cookie: `logistics_session=${session.value}` },
+        headers: { Authorization: `Bearer ${data.token}` },
         cache: "no-store",
         signal: AbortSignal.timeout(10_000),
       },
@@ -60,6 +65,7 @@ export default async function DashboardPage() {
           Your account is ready. Shipment and fleet management will appear here
           as your workspace grows.
         </p>
+        <Files />
       </section>
     </main>
   );

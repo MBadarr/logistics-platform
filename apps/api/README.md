@@ -33,13 +33,11 @@ API documentation:
 - Swagger UI: http://localhost:3002/docs
 - OpenAPI JSON: http://localhost:3002/openapi.json
 
-Run `pnpm --filter api dev` from the repository root. Both documentation interfaces use the same generated document, configured in `src/config/api-docs.ts`. Authentication request/response models are in `src/auth/auth.dto.ts`; runtime validation remains in `auth.validation.ts`.
+Run `pnpm --filter api dev` from the repository root. Both documentation interfaces use the same generated document in `src/config/api-docs.ts`.
 
-To test authenticated requests, sign up or log in through the docs first. The browser stores the HttpOnly session cookie automatically; you do not need to paste a bearer token. Requests from the docs stay on the API server (Scalar's external proxy is disabled). Browsers do not let Swagger manually set a Cookie header.
+Authentication is managed by Neon Auth. Sign in through the web app, obtain a Neon JWT with the SDK's token method, and use the Bearer authorization field in the docs. NestJS exposes `/auth/me`; signup, login, verification, recovery, and logout go through the web app's Neon Auth handler.
 
-Local docs requests allow `http://localhost:3002` by default. For a different API host or production deployment, set `API_ORIGIN` in `apps/api/.env` to that API's public origin. The web application's trusted origin continues to come from `APP_URL`.
-
-Verify the documentation routes, schemas, and origin restrictions with `pnpm --filter api test:docs:integration`. This check does not require PostgreSQL or Resend.
+Verify docs and bearer schemas with `pnpm --filter api test:docs:integration`. Verify JWT signatures and HTTP guards with `pnpm --filter api test:auth:integration`. Both use isolated local test fixtures and do not modify Neon data. See [Neon setup](../../AUTH_SETUP.md).
 
 [Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
 

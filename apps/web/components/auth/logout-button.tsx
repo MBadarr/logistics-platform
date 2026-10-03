@@ -3,6 +3,7 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { Button } from "@repo/ui/button";
 import { Alert } from "@repo/ui/alert";
+import { authClient } from "../../lib/auth/client";
 
 export function LogoutButton() {
   const router = useRouter();
@@ -12,12 +13,8 @@ export function LogoutButton() {
     setBusy(true);
     setError("");
     try {
-      const response = await fetch("/api/auth/logout", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: "{}",
-      });
-      if (!response.ok) throw new Error();
+      const result = await authClient.signOut();
+      if (result.error) throw new Error(result.error.message);
       router.replace("/login");
       router.refresh();
     } catch {

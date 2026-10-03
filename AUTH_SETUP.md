@@ -1,131 +1,87 @@
-# Authentication setup
+# Neon authentication and database setup
 
-The API owns authentication and Resend email delivery. Next.js forwards `/api/auth/*`
-requests to NestJS on the server, so the browser uses same-origin requests and an
-HttpOnly session cookie. Passwords, database access, and Resend credentials remain
-on the API server. Authentication accounts are stored in `auth_users`. The
-`remove_tutorial_users` migration drops the obsolete `users` table and its data.
+Neon Auth (managed Better Auth) owns accounts, password hashing, sessions,
+verification emails, and password recovery. Its tables live in the managed
+neon_auth schema. NestJS uses Neon Postgres through the shared Drizzle package
+and verifies Neon JWTs for protected API requests.
 
-## Structure
+## Request flow
 
-```text
-apps/api/src/
-  auth/       Routes, validation, password hashing, sessions, reset flow, guards
-  database/   Shared Drizzle client and connection lifecycle
-  mail/       Resend API client and password reset emails
-  config/     Environment helpers
-apps/web/
-  app/(auth)/ Login, signup, forgot-password, reset-password pages
-  app/api/auth/[action]/ Server-side API proxy
-  app/dashboard/        Session-protected account page
-  components/auth/      Reusable forms and logout button
-packages/database/src/db/auth-schema.ts
-  auth_users, auth_sessions, password_reset_tokens
-```
+The browser calls the same-origin Next.js /api/auth/* handler through
+@neondatabase/auth. The Next.js SDK manages secure session cookies and proxies
+to the configured Neon Auth URL. Signup, login, email verification, password
+reset, and logout use the managed SDK methods.
+
+The dashboard checks the session, obtains a JWT with auth.token(), and calls
+NestJS /auth/me. NestJS verifies signature, expiry, issuer, and audience, then
+reads the managed account and rejects missing or banned users. Neon uses the
+Auth URL's origin for JWT issuer and audience, while the JWKS URL includes
+/neondb/auth/.well-known/jwks.json.
+
+File requests use Next.js /api/files, which obtains a JWT server-side and
+forwards it to protected NestJS storage routes. The API uploads to the configured
+Neon private bucket, isolates objects under uploads/{userId}/, and generates
+five-minute download URLs only for that user's files. Uploads are limited to
+10 MB. Bucket credentials stay on the API server.
 
 ## Environment
 
-Set the following in `apps/api/.env` (see `.env.example`):
+Merge apps/api/.env.example into apps/api/.env and apps/web/.env.example into
+apps/web/.env.local. Existing values should be retained. The API and web app
+must use the same Neon Auth branch; the database and storage must also target
+that branch.
 
-```dotenv
-DATABASE_URL=postgresql://user:password@localhost:5432/logistics
-APP_URL=http://localhost:3000
-PORT=3002
-API_ORIGIN=http://localhost:3002
-RESEND_API_KEY=
-RESEND_FROM=
-```
+- API: DATABASE_URL (pooled), NEON_AUTH_BASE_URL, AWS_ENDPOINT_URL_S3,
+  AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, AWS_REGION, and S3_BUCKET.
+- Web: API_URL, NEON_AUTH_BASE_URL, NEON_AUTH_COOKIE_SECRET (random, at least
+  32 characters).
+- Database tooling: packages/database/.env uses the direct DATABASE_URL, or
+  DATABASE_URL_UNPOOLED when specified. The API accepts DATABASE_URL_POOLED
+  as an optional runtime override.
 
-Do not overwrite an existing `.env`; merge these keys into it. The existing
-database URL was added to the API environment during setup if it was missing.
-The Resend fields are intentionally empty for later credential insertion. Create
-an API key in the Resend dashboard, verify your sending domain, then set
-`RESEND_API_KEY=re_...` and `RESEND_FROM=Logistics <no-reply@your-domain.com>`.
-Restart the API after changing these values. See the official
-[Resend Node.js guide](https://resend.com/docs/send-with-nodejs).
-Email delivery uses Resend's HTTPS API. The API can start with empty credentials;
-password reset delivery requires both fields. Signup and login remain available.
+Use the full JWKS path /.well-known/jwks.json if setting NEON_AUTH_JWKS_URL.
+S3_BUCKET must match the bucket actually provisioned on the branch; the sample
+assets bucket is not automatically created. No application Resend client is
+required. Email delivery and trusted redirect domains are configured in Neon.
+Register deployed web origins in Neon Auth's trusted domains. Localhost must
+be allowed for development.
 
-Set `API_URL=http://localhost:3002` in `apps/web/.env.local` if necessary. This is a
-server-only variable; the browser never needs the API URL. Database migration
-commands use `packages/database/.env`, not the API's environment file.
+The custom auth implementation and mailer are removed from the active app.
+Historical SQL is retained under packages/database/legacy-drizzle for reference
+and is excluded from the active Drizzle migration directory. Do not apply it
+to Neon or migrate/drop Neon-managed auth tables. Existing custom accounts are
+not automatically transferred; users need Neon accounts.
 
-In production set `NODE_ENV=production`, use an HTTPS `APP_URL`, and provide the
-Resend credentials through the deployment's environment variables. Production
-cookies are Secure. Environment files are
-ignored by Git. Resend failures are logged by the API; password recovery still
-returns a generic response to prevent account enumeration.
-
-## Run
+## Run and verify
 
 From the repository root:
 
-```powershell
-pnpm install
-pnpm --filter database build
-pnpm --filter database db:migrate
-pnpm dev
-```
+    pnpm --filter database build
+    pnpm --filter api build
+    pnpm dev
 
-The authentication migration has already been generated and applied to the local
-database during setup. Other databases must apply the checked-in migrations.
-Turbo builds the database package before its API consumer. The database `dev`
-script only watches and compiles changes; it does not perform migrations.
+Open http://localhost:3000/signup. Create an account, verify the email code
+if requested, sign in, reload the dashboard, upload/download a file, and sign
+out. Password recovery starts at /forgot-password and returns to
+/reset-password?token=... using the managed email link.
 
-Open http://localhost:3000/signup to create a new account. Signup signs you in.
-Forgot password sends a link to `/reset-password?token=...`. Passwords must have
-12–128 characters. Reset links expire after 30 minutes and can be used once. A
-successful reset revokes all sessions and other reset tokens for that account;
-it does not automatically sign the user in.
+    pnpm --filter database check-types
+    pnpm --filter api test
+    pnpm --filter api check-types
+    pnpm --filter api test:auth:integration
+    pnpm --filter api test:docs:integration
+    pnpm --filter web lint
+    pnpm --filter web check-types
+    pnpm --filter web build
 
-## API routes
+JWT unit and HTTP integration tests generate local Ed25519 keys and serve a
+local JWKS endpoint. They cover valid identity, invalid/expired tokens, wrong
+issuer/audience, anonymous identities, missing/banned accounts, and HTTP guards.
+They do not create production users, send email, or modify Neon tables.
+Sign-out ends the browser session; an already issued JWT remains valid until
+expiry (typically 15 minutes).
 
-| Method | Route                   | Body / purpose                                             |
-| ------ | ----------------------- | ---------------------------------------------------------- |
-| POST   | `/auth/signup`          | `{ name, email, password }`                                |
-| POST   | `/auth/login`           | `{ email, password }`                                      |
-| GET    | `/auth/me`              | Requires session cookie                                    |
-| POST   | `/auth/logout`          | Revokes current session and clears cookie                  |
-| POST   | `/auth/forgot-password` | `{ email }`; always returns a generic message              |
-| POST   | `/auth/reset-password`  | `{ token, password }`; consumes token and revokes sessions |
-
-Browser clients use the corresponding `/api/auth/...` proxy routes. Mutating
-browser requests must send JSON from the configured origin. Future protected
-API controllers should import `AuthModule`, use `@UseGuards(SessionGuard)`, and
-read the authenticated user from `AuthenticatedRequest.user`. Protect backend
-data endpoints even when their web pages are also protected.
-
-## Validation
-
-```powershell
-pnpm --filter database check-types
-pnpm --filter api test
-pnpm --filter api build
-pnpm --filter api test:auth:integration
-pnpm --filter web lint
-pnpm --filter web check-types
-pnpm --filter web build
-```
-
-The integration test requires a development PostgreSQL connection with permission
-to create a temporary schema. It creates an isolated schema, applies the auth SQL
-there, exercises the actual HTTP API with a captured email provider, and removes
-only that temporary schema afterward. It never sends external email or modifies
-existing application tables. It covers reset expiry, concurrent token reuse, old
-password rejection, session revocation, and logout. Mail service unit tests cover
-Resend request payloads, missing credentials, returned API errors, and network
-failures using a mocked SDK. Tests do not require Resend credentials.
-
-## Operational notes
-
-- Passwords are salted and hashed using Node's scrypt; session/reset tokens are
-  cryptographically random and only SHA-256 hashes are stored in PostgreSQL.
-- Session lifetime is seven days. Expired sessions and reset tokens cannot be
-  used; periodically remove their expired rows as database maintenance.
-- Request throttling is process-local and scopes limits to IP plus account/session,
-  with a bulk IP limit. For multiple API instances, move this to a shared rate-limit
-  store or configure equivalent limits at your ingress.
-- This implements signup, login, and password recovery. Email verification, MFA,
-  organization roles, and shipment authorization are separate future features.
-- The sample query demonstration was replaced by a reusable `createDatabase`
-  factory. Consumers must create a client once and close its pool at shutdown.
+References:
+- https://neon.com/docs/auth/guides/plugins/jwt
+- https://neon.com/docs/auth/overview
+- https://neon.com/docs/storage/s3-compatibility

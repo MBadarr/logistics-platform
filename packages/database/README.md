@@ -1,29 +1,31 @@
 # Database
 
-Shared PostgreSQL package for the logistics API, using Drizzle ORM.
+Shared Neon Postgres package for the logistics API, using Drizzle ORM and pg.
 
 ```typescript
-import { createDatabase, authUsers } from "database";
+import { createDatabase } from "database";
+import { sql } from "drizzle-orm";
 
 const { db, pool } = createDatabase(process.env.DATABASE_URL!);
-const users = await db.select({ id: authUsers.id, name: authUsers.name }).from(authUsers);
+await db.execute(sql`select 1`);
 ```
 
-Create one client per application and call `pool.end()` when it shuts down.
-The NestJS `DatabaseService` handles that lifecycle. Importing the package does
-not execute queries or load environment variables.
+Create one client per application and call pool.end() when it shuts down.
+NestJS DatabaseService handles that lifecycle. Importing this package does not
+load environment variables or run queries.
 
-Run commands from the repository root:
+The API uses the pooled Neon connection. Migration commands load
+packages/database/.env and use DATABASE_URL_UNPOOLED if set, otherwise
+DATABASE_URL; use the direct connection for those commands.
 
-```powershell
-pnpm --filter database build
-pnpm --filter database db:generate --name describe_change
-pnpm --filter database db:migrate
-```
+    pnpm --filter database build
+    pnpm --filter database db:generate --name describe_change
+    pnpm --filter database db:migrate
 
-Set migration credentials in `packages/database/.env`. Review and commit generated
-migration files. The `dev` script watches TypeScript source; migrations are run
-explicitly. Accounts are stored in `auth_users`. The `remove_tutorial_users`
-migration drops the obsolete tutorial `users` table and its data; existing
-authentication accounts are retained. See [authentication setup](../../AUTH_SETUP.md)
-for application configuration.
+The active schema contains application-owned tables only (currently empty).
+Neon owns the neon_auth schema; do not generate or apply migrations for its
+tables. Custom auth migrations are archived under legacy-drizzle and excluded
+from the active migration directory. Existing custom accounts do not become
+Neon Auth accounts automatically.
+
+See [authentication setup](../../AUTH_SETUP.md) for configuration and validation.
